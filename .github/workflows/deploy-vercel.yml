@@ -1,0 +1,44 @@
+name: Deploy to vercel (production)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-reauthor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Author
+        run: |
+          git config --global user.name "Thanarat Ruangrat"
+          git config --global user.email "ninetu@gmail.com"
+
+      - name: Update Branch and Push
+        run: |
+          # 1. Check if the 'production' branch exists on the remote
+          if git ls-remote --heads origin production | grep -q 'refs/heads/production'; then
+            echo "Branch exists. Fetching and switching..."
+            git fetch origin production
+            git checkout production
+            git merge main
+          else
+            echo "Branch does not exist. Creating from main..."
+            git checkout -b production
+          fi
+
+          # 2. Apply the identity "mask"
+          # We use --allow-empty in case there are no changes to merge
+          git commit --amend --reset-author --no-edit --allow-empty
+          
+          # 3. Push to origin
+          # -u sets the upstream tracking for future runs
+          git push -u origin production --force
