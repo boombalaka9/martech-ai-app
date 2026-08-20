@@ -49,17 +49,6 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
-      fontFamily: {
-        serif: ['"Source Serif 4"', "Georgia", "serif"],
-        sans: ['"Work Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
-      },
-      colors: {
         rk: {
           surface: "#f8f9fe",
           "surface-dim": "#d9dade",
@@ -88,6 +77,15 @@ export default {
           danger: "#EF4444",
           info: "#3B82F6",
         },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        serif: ['"Source Serif 4"', "Georgia", "serif"],
+        sans: ['"Work Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
     },
   },
