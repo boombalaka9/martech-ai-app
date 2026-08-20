@@ -123,6 +123,22 @@ const name = user?.name ?? 'Unknown'
 
 ---
 
+### `React.ReactNode` Type Without Import
+
+**Failure**: Using `children?: React.ReactNode` in a server component without importing `React` can fail type-checking under the `react-jsx` transform (JSX runtime doesn't inject the `React` namespace).
+
+**Recovery**: Import the type directly instead: `import { ReactNode } from "react"` and annotate as `children?: ReactNode`.
+
+---
+
+### Node / pnpm Not On Agent Shell PATH
+
+**Failure**: `pnpm build` / `node` return "command not found" in the non-interactive agent shell, and `node_modules` is absent, so the production build cannot be verified automatically.
+
+**Recovery**: Node is managed outside the default PATH (or deps aren't installed). Run `pnpm install && pnpm build` manually in an interactive terminal to verify. Until then, review code manually for JSX/TS validity and Tailwind CSS 4 token usage.
+
+---
+
 ## 🔧 QUICK COMMANDS
 
 ```bash
