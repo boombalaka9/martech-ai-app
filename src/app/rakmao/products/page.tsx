@@ -1,114 +1,32 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { TopBar } from "@/components/rakmao/topbar";
+import {
+  productGroups,
+  productGroupNames,
+  type Channel,
+  type ProductCard as CardType,
+} from "@/lib/rakmao/data";
 
-const channels = [
-  { label: "ทุกช่องทาง", active: true },
-  { label: "Station", sub: "Station" },
-  { label: "BuyNow", sub: "รักษ์เหมา" },
+const channelFilters: { key: Channel | "all"; label: string; sub?: string }[] = [
+  { key: "all", label: "ทุกช่องทาง" },
+  { key: "station", label: "Station", sub: "Station" },
+  { key: "buynow", label: "BuyNow", sub: "รักษ์เหมา" },
 ];
 
-const ranges = ["1 สัปดาห์", "2 สัปดาห์", "3 สัปดาห์", "1 เดือน", "2 เดือน", "3 เดือน"];
-
-type Card = {
-  name: string;
-  phone: string;
-  channel: "BUY NOW" | "Station";
-  location: string;
-  score: number;
-  due: string;
-  dueWarn: boolean;
-  boughtLine: string;
-};
-
-type ProductColumn = {
-  icon: string;
-  title: string;
-  siteCount: number;
-  suggest: string;
-  suggestStrong?: boolean;
-  cards: Card[];
-};
-
-const columns: ProductColumn[] = [
-  {
-    icon: "view_in_ar",
-    title: "เสาเข็ม",
-    siteCount: 2,
-    suggest: "เหล็กเส้น + ไม้แบบ",
-    suggestStrong: true,
-    cards: [
-      {
-        name: "จ่า กิตินัดดา",
-        phone: "0925507193",
-        channel: "BUY NOW",
-        location: "ต.แสนแสบ อ.มีนบุรี จ.กรุงเทพมหานคร",
-        score: 89,
-        due: "อีก 4 วัน",
-        dueWarn: false,
-        boughtLine: "ซื้อเสาเข็ม 10 ส.ค. 69",
-      },
-      {
-        name: "พราว .",
-        phone: "0849890488",
-        channel: "Station",
-        location: "ต.คันนายาว อ.คันนายาว จ.กรุงเทพมหานคร",
-        score: 48,
-        due: "ค้าง 2 วัน",
-        dueWarn: true,
-        boughtLine: "ซื้อเสาเข็ม 4 ส.ค. 69",
-      },
-    ],
-  },
-  {
-    icon: "view_column",
-    title: "เหล็กเส้น",
-    siteCount: 10,
-    suggest: "คอนกรีตผสมเสร็จ",
-    cards: [
-      {
-        name: "ฟ้า หจก.รุ่งทวีเฟอร์นิเจอร์",
-        phone: "0989752797",
-        channel: "BUY NOW",
-        location: "ต.หนองจอก อ.บางปะกง จ.ฉะเชิงเทรา",
-        score: 87,
-        due: "ค้าง 11 วัน",
-        dueWarn: true,
-        boughtLine: "ซื้อเหล็กเส้น 30 ก.ค. 69",
-      },
-      {
-        name: "อดิเรก สุดตริคุณ",
-        phone: "0987593789",
-        channel: "BUY NOW",
-        location: "ต.สาโพ อ.บางบัวทอง จ.นนทบุรี",
-        score: 87,
-        due: "ค้าง 6 วัน",
-        dueWarn: true,
-        boughtLine: "ซื้อเหล็กเส้น 4 ส.ค. 69",
-      },
-    ],
-  },
-  {
-    icon: "edit_note",
-    title: "ไม้แบบ",
-    siteCount: 6,
-    suggest: "คอนกรีตผสมเสร็จ",
-    cards: [
-      {
-        name: "ก่อสร้าง เจริญทรัพย์",
-        phone: "0812345678",
-        channel: "Station",
-        location: "ต.บางรักพัฒนา อ.บางบัวทอง จ.นนทบุรี",
-        score: 72,
-        due: "อีก 2 วัน",
-        dueWarn: false,
-        boughtLine: "ซื้อไม้แบบ 9 ส.ค. 69",
-      },
-    ],
-  },
+const rangeChips: { label: string; days: number }[] = [
+  { label: "1 สัปดาห์", days: 7 },
+  { label: "2 สัปดาห์", days: 14 },
+  { label: "3 สัปดาห์", days: 21 },
+  { label: "1 เดือน", days: 30 },
+  { label: "2 เดือน", days: 60 },
+  { label: "3 เดือน", days: 90 },
 ];
 
-function ProductCard({ card }: { card: Card }) {
+function ProductCardView({ card }: { card: CardType }) {
   return (
-    <div className="bg-white rounded-lg border border-rk-border-subtle p-4 shadow-sm flex flex-col gap-2 hover:-translate-y-0.5 transition-all">
+    <div className="bg-white rounded-lg border border-rk-border-subtle p-4 shadow-sm flex flex-col gap-2 rk-fade-up">
       <div className="flex items-start gap-3">
         <span className="flex flex-col items-center justify-center w-11 h-11 rounded-lg bg-rk-secondary-container/60 text-rk-on-secondary-container shrink-0">
           <span className="font-bold text-sm leading-none">{card.score}</span>
@@ -119,7 +37,7 @@ function ProductCard({ card }: { card: Card }) {
             {card.name}
           </div>
           <div className="flex items-center gap-2 mt-1">
-            {card.channel === "BUY NOW" ? (
+            {card.channel === "buynow" ? (
               <span className="inline-flex flex-col leading-none">
                 <span className="text-[8px] text-rk-info font-semibold">
                   รักษ์เหมา
@@ -164,6 +82,31 @@ function ProductCard({ card }: { card: Card }) {
 }
 
 export default function ProductsPage() {
+  const [view, setView] = useState<"group" | "kanban">("kanban");
+  const [channel, setChannel] = useState<Channel | "all">("all");
+  const [query, setQuery] = useState("");
+  const [group, setGroup] = useState("ทั้งหมด");
+  const [rangeDays, setRangeDays] = useState(7);
+
+  const columns = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return productGroups
+      .filter((g) => group === "ทั้งหมด" || g.title === group)
+      .map((g) => ({
+        ...g,
+        cards: g.cards.filter((c) => {
+          if (channel !== "all" && c.channel !== channel) return false;
+          if (c.boughtDaysAgo > rangeDays) return false;
+          if (q && !(`${c.name} ${c.phone}`.toLowerCase().includes(q)))
+            return false;
+          return true;
+        }),
+      }))
+      .filter((g) => g.cards.length > 0);
+  }, [channel, query, group, rangeDays]);
+
+  const totalSites = columns.reduce((sum, g) => sum + g.cards.length, 0);
+
   return (
     <>
       <TopBar
@@ -173,14 +116,28 @@ export default function ProductsPage() {
         subtitle="ตามกลุ่มลูกค้าที่เพิ่งซื้อสินค้ากลุ่มเดียวกัน — เลือกกลุ่มสินค้าและช่วงเวลา"
       />
 
-      <div className="p-6 md:p-8 flex flex-col gap-5 overflow-y-auto rk-scroll rk-fade-up">
+      <div className="p-6 md:p-8 flex flex-col gap-5 overflow-y-auto rk-scroll">
         {/* View toggle */}
         <div className="inline-flex items-center gap-1 bg-white border border-rk-border-subtle rounded-lg p-1 w-fit">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-rk-on-surface-variant hover:bg-rk-surface-container transition-colors">
+          <button
+            onClick={() => setView("group")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              view === "group"
+                ? "bg-rk-primary text-white"
+                : "text-rk-on-surface-variant hover:bg-rk-surface-container"
+            }`}
+          >
             <span className="material-symbols-outlined text-[18px]">layers</span>
             ตามกลุ่มสินค้า
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-rk-primary text-white">
+          <button
+            onClick={() => setView("kanban")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              view === "kanban"
+                ? "bg-rk-primary text-white"
+                : "text-rk-on-surface-variant hover:bg-rk-surface-container"
+            }`}
+          >
             <span className="material-symbols-outlined text-[18px]">
               view_kanban
             </span>
@@ -190,17 +147,24 @@ export default function ProductsPage() {
 
         {/* Channel + search + group select */}
         <div className="flex flex-wrap items-center gap-3">
-          {channels.map((c) => (
+          {channelFilters.map((c) => (
             <button
-              key={c.label}
+              key={c.key}
+              onClick={() => setChannel(c.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                c.active
+                channel === c.key
                   ? "bg-rk-primary text-white"
                   : "bg-white border border-rk-border-subtle text-rk-on-surface-variant hover:bg-rk-surface-container"
               }`}
             >
               {c.sub && (
-                <span className="text-xs text-rk-on-surface-variant/70 font-serif italic">
+                <span
+                  className={`text-xs font-serif italic ${
+                    channel === c.key
+                      ? "text-white/70"
+                      : "text-rk-on-surface-variant/70"
+                  }`}
+                >
                   {c.sub}
                 </span>
               )}
@@ -212,6 +176,8 @@ export default function ProductsPage() {
               search
             </span>
             <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 bg-white rounded-lg border border-rk-border-subtle focus:border-rk-primary outline-none text-sm"
               placeholder="ค้นหาชื่อลูกค้า / เบอร์โทร..."
             />
@@ -220,12 +186,17 @@ export default function ProductsPage() {
             <span className="text-[11px] text-rk-on-surface-variant">
               กลุ่มสินค้า
             </span>
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-rk-border-subtle rounded-lg text-sm text-rk-on-surface-variant hover:bg-rk-surface-container transition-colors min-w-[180px] justify-between">
-              เลือกกลุ่มสินค้า...
-              <span className="material-symbols-outlined text-[18px]">
-                expand_more
-              </span>
-            </button>
+            <select
+              value={group}
+              onChange={(e) => setGroup(e.target.value)}
+              className="px-3 py-2 bg-white border border-rk-border-subtle rounded-lg text-sm text-rk-on-surface-variant hover:bg-rk-surface-container transition-colors outline-none focus:border-rk-primary min-w-[180px]"
+            >
+              {productGroupNames.map((g) => (
+                <option key={g} value={g}>
+                  {g === "ทั้งหมด" ? "เลือกกลุ่มสินค้า..." : g}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -235,16 +206,17 @@ export default function ProductsPage() {
             ช่วงเวลาที่ซื้อย้อนหลัง
           </span>
           <div className="flex flex-wrap items-center gap-2">
-            {ranges.map((r, i) => (
+            {rangeChips.map((r) => (
               <button
-                key={r}
+                key={r.label}
+                onClick={() => setRangeDays(r.days)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  i === 0
+                  rangeDays === r.days
                     ? "bg-rk-primary text-white"
                     : "bg-white border border-rk-border-subtle text-rk-on-surface-variant hover:bg-rk-surface-container"
                 }`}
               >
-                {r}
+                {r.label}
               </button>
             ))}
           </div>
@@ -252,55 +224,74 @@ export default function ProductsPage() {
 
         {/* Summary line */}
         <div className="text-sm text-rk-on-surface-variant">
-          รวม <span className="font-semibold text-rk-primary">354</span>{" "}
+          รวม <span className="font-semibold text-rk-primary">{totalSites}</span>{" "}
           ไซต์ที่ต้องติดตาม ·{" "}
-          <span className="font-semibold text-rk-primary">9</span> กลุ่มสินค้า
+          <span className="font-semibold text-rk-primary">{columns.length}</span>{" "}
+          กลุ่มสินค้า
         </div>
 
-        {/* Kanban columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {columns.map((col) => (
-            <div
-              key={col.title}
-              className="flex flex-col bg-rk-surface-low/50 rounded-xl border border-rk-border-subtle"
-            >
-              <div className="p-4 border-b border-rk-border-subtle">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="flex items-center gap-2 font-serif font-semibold text-rk-primary text-lg">
-                    <span className="material-symbols-outlined text-[22px]">
-                      {col.icon}
+        {/* Columns / groups */}
+        {columns.length === 0 ? (
+          <div className="bg-white rounded-xl border border-rk-border-subtle py-16 text-center text-sm text-rk-on-surface-variant/60">
+            ไม่พบไซต์ที่ตรงกับเงื่อนไข ลองปรับช่วงเวลาหรือช่องทาง
+          </div>
+        ) : (
+          <div
+            className={
+              view === "kanban"
+                ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
+                : "flex flex-col gap-5"
+            }
+          >
+            {columns.map((col) => (
+              <div
+                key={col.id}
+                className="flex flex-col bg-rk-surface-low/50 rounded-xl border border-rk-border-subtle"
+              >
+                <div className="p-4 border-b border-rk-border-subtle">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2 font-serif font-semibold text-rk-primary text-lg">
+                      <span className="material-symbols-outlined text-[22px]">
+                        {col.icon}
+                      </span>
+                      {col.title}
                     </span>
-                    {col.title}
-                  </span>
-                  <span className="px-2.5 py-1 rounded-md bg-rk-primary text-white text-xs font-semibold">
-                    {col.siteCount} ไซต์
-                  </span>
-                </div>
-                <div
-                  className={`text-xs rounded-md px-3 py-2 ${
-                    col.suggestStrong
-                      ? "bg-rk-secondary-container/30 text-rk-on-surface"
-                      : "bg-rk-info/10 text-rk-on-surface"
-                  }`}
-                >
-                  เสนอ{" "}
-                  <span
-                    className={`font-semibold ${
-                      col.suggestStrong ? "text-rk-danger" : "text-rk-info"
+                    <span className="px-2.5 py-1 rounded-md bg-rk-primary text-white text-xs font-semibold">
+                      {col.cards.length} ไซต์
+                    </span>
+                  </div>
+                  <div
+                    className={`text-xs rounded-md px-3 py-2 ${
+                      col.suggestStrong
+                        ? "bg-rk-secondary-container/30 text-rk-on-surface"
+                        : "bg-rk-info/10 text-rk-on-surface"
                     }`}
                   >
-                    {col.suggest}
-                  </span>
+                    เสนอ{" "}
+                    <span
+                      className={`font-semibold ${
+                        col.suggestStrong ? "text-rk-danger" : "text-rk-info"
+                      }`}
+                    >
+                      {col.suggest}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className={
+                    view === "kanban"
+                      ? "flex flex-col gap-3 p-3 min-h-[200px]"
+                      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-3"
+                  }
+                >
+                  {col.cards.map((card) => (
+                    <ProductCardView key={card.id} card={card} />
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-col gap-3 p-3 min-h-[300px]">
-                {col.cards.map((card, i) => (
-                  <ProductCard key={i} card={card} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

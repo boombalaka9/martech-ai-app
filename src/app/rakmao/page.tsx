@@ -1,94 +1,24 @@
+"use client";
+
+import { useState } from "react";
 import { TopBar } from "@/components/rakmao/topbar";
+import {
+  dashboardByRange,
+  timeRangeLabel,
+  type TimeRange,
+} from "@/lib/rakmao/data";
 
-const kpis = [
-  {
-    label: "Total Revenue",
-    value: "฿12.5M",
-    icon: "payments",
-    iconClass: "bg-rk-primary/10 text-rk-primary",
-    trend: "+15% vs last month",
-    trendIcon: "trending_up",
-    trendClass: "text-rk-success",
-  },
-  {
-    label: "Active Campaigns",
-    value: "24",
-    icon: "campaign",
-    iconClass: "bg-rk-secondary-container/30 text-rk-on-secondary-container",
-    trend: "3 ending this week",
-    trendIcon: "schedule",
-    trendClass: "text-rk-on-surface-variant",
-  },
-  {
-    label: "Total Customers",
-    value: "1,224",
-    icon: "groups",
-    iconClass: "bg-rk-info/10 text-rk-info",
-    trend: "+42 new this week",
-    trendIcon: "trending_up",
-    trendClass: "text-rk-success",
-  },
-  {
-    label: "Conversion Rate",
-    value: "8.5%",
-    icon: "stacked_line_chart",
-    iconClass: "bg-rk-primary/10 text-rk-primary",
-    trend: "-0.2% vs last month",
-    trendIcon: "trending_down",
-    trendClass: "text-rk-danger",
-    decoration: "percent",
-  },
-];
-
-const pipeline = [
-  { label: "Follow-up Needed", value: 38, width: "25%", color: "bg-rk-warning" },
-  { label: "Quoting", value: 19, width: "15%", color: "bg-rk-info" },
-  {
-    label: "Decision Pending",
-    value: 12,
-    width: "10%",
-    color: "bg-rk-secondary-container",
-  },
-  { label: "Closed", value: 85, width: "70%", color: "bg-rk-success" },
-];
-
-const products = [
-  {
-    name: "Ready-Mix Concrete",
-    icon: "apartment",
-    volume: "฿4.2M",
-    growth: "12.5%",
-    up: true,
-  },
-  {
-    name: "Structural Steel",
-    icon: "hardware",
-    volume: "฿3.8M",
-    growth: "8.2%",
-    up: true,
-  },
-  {
-    name: "Cement Bags",
-    icon: "inventory_2",
-    volume: "฿2.1M",
-    growth: "3.4%",
-    up: true,
-  },
-  {
-    name: "Timber & Wood",
-    icon: "forest",
-    volume: "฿1.4M",
-    growth: "1.1%",
-    up: false,
-  },
-];
+const ranges: TimeRange[] = ["week", "month", "quarter"];
 
 export default function DashboardPage() {
+  const [range, setRange] = useState<TimeRange>("month");
+  const data = dashboardByRange[range];
+
   return (
     <>
       <TopBar breadcrumb={["Dashboard", "Overview"]} />
 
-      <div className="p-6 md:p-8 flex flex-col gap-6 overflow-y-auto rk-scroll rk-fade-up">
+      <div className="p-6 md:p-8 flex flex-col gap-6 overflow-y-auto rk-scroll">
         {/* Page header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
@@ -99,13 +29,27 @@ export default function DashboardPage() {
               ภาพรวมตัวชี้วัดและกิจกรรมล่าสุดของ Rakmao Martech
             </p>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 border border-rk-border-subtle bg-white rounded-lg text-sm font-medium text-rk-on-surface-variant hover:bg-rk-surface-container transition-colors flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">
-                calendar_month
-              </span>
-              This Month
-            </button>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex bg-white border border-rk-border-subtle rounded-lg p-1">
+              {ranges.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRange(r)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    range === r
+                      ? "bg-rk-primary text-white"
+                      : "text-rk-on-surface-variant hover:bg-rk-surface-container"
+                  }`}
+                >
+                  {r === range && (
+                    <span className="material-symbols-outlined text-[16px]">
+                      calendar_month
+                    </span>
+                  )}
+                  {timeRangeLabel[r]}
+                </button>
+              ))}
+            </div>
             <button className="px-4 py-2 bg-rk-primary text-white rounded-lg text-sm font-medium hover:bg-rk-primary/90 transition-colors shadow-sm">
               Export Report
             </button>
@@ -114,10 +58,10 @@ export default function DashboardPage() {
 
         {/* KPI cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {kpis.map((k) => (
+          {data.kpis.map((k) => (
             <div
-              key={k.label}
-              className="relative overflow-hidden bg-white p-6 rounded-xl border border-rk-border-subtle flex flex-col justify-between hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-shadow"
+              key={k.key}
+              className="relative overflow-hidden bg-white p-6 rounded-xl border border-rk-border-subtle flex flex-col justify-between hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-shadow rk-fade-up"
             >
               <div className="flex justify-between items-start mb-4 relative z-10">
                 <span className="text-xs font-semibold text-rk-on-surface-variant uppercase tracking-wider">
@@ -178,50 +122,37 @@ export default function DashboardPage() {
               <div className="absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-rk-primary/10 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-between py-4 px-8 opacity-20">
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-full border-b border-rk-border-subtle" />
+                  <div
+                    key={i}
+                    className="w-full border-b border-rk-border-subtle"
+                  />
                 ))}
               </div>
               <svg
+                key={range}
                 className="absolute inset-0 w-full h-full"
                 preserveAspectRatio="none"
                 viewBox="0 0 100 100"
               >
                 <path
                   className="text-rk-primary"
-                  d="M 0 80 Q 15 70 25 50 T 50 45 T 75 25 T 100 12"
+                  d={data.chart.actual}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                 />
                 <path
                   className="text-rk-outline-variant"
-                  d="M 0 90 L 25 72 L 50 58 L 75 40 L 100 22"
+                  d={data.chart.target}
                   fill="none"
                   stroke="currentColor"
                   strokeDasharray="2 2"
                   strokeWidth="1"
                 />
-                {[
-                  [25, 50],
-                  [50, 45],
-                  [75, 25],
-                  [100, 12],
-                ].map(([cx, cy], i) => (
-                  <circle
-                    key={i}
-                    className="text-rk-primary"
-                    cx={cx}
-                    cy={cy}
-                    fill="white"
-                    r="1.5"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                  />
-                ))}
               </svg>
               <div className="absolute bottom-2 left-0 w-full flex justify-between px-8 text-xs text-rk-on-surface-variant">
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m) => (
-                  <span key={m}>{m}</span>
+                {data.chart.labels.map((m, i) => (
+                  <span key={i}>{m}</span>
                 ))}
               </div>
             </div>
@@ -234,15 +165,14 @@ export default function DashboardPage() {
             </h3>
             <div className="flex-1 flex flex-col items-center justify-center relative min-h-[250px]">
               <div
-                className="relative w-48 h-48 rounded-full mb-6"
+                className="relative w-48 h-48 rounded-full mb-6 transition-all"
                 style={{
-                  background:
-                    "conic-gradient(#00355a 0% 65%, #fec30a 65% 100%)",
+                  background: `conic-gradient(#00355a 0% ${data.leadSource.station}%, #fec30a ${data.leadSource.station}% 100%)`,
                 }}
               >
                 <div className="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
                   <span className="font-serif text-xl text-rk-primary font-bold">
-                    1,224
+                    {data.leadSource.total}
                   </span>
                   <span className="text-xs text-rk-on-surface-variant">
                     Total Leads
@@ -255,14 +185,18 @@ export default function DashboardPage() {
                     <div className="w-3 h-3 rounded-full bg-rk-primary" />
                     <span className="text-sm text-rk-on-surface">Station</span>
                   </div>
-                  <span className="text-sm text-rk-primary font-bold">65%</span>
+                  <span className="text-sm text-rk-primary font-bold">
+                    {data.leadSource.station}%
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-rk-secondary-container" />
                     <span className="text-sm text-rk-on-surface">BuyNow</span>
                   </div>
-                  <span className="text-sm text-rk-primary font-bold">35%</span>
+                  <span className="text-sm text-rk-primary font-bold">
+                    {data.leadSource.buynow}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -284,13 +218,11 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="flex flex-col gap-4">
-              {pipeline.map((stage) => (
+              {data.pipeline.map((stage) => (
                 <div key={stage.label} className="group cursor-pointer">
                   <div className="flex justify-between items-end mb-1">
                     <span className="text-sm text-rk-on-surface flex items-center gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full ${stage.color}`}
-                      />
+                      <span className={`w-2 h-2 rounded-full ${stage.color}`} />
                       {stage.label}
                     </span>
                     <span className="text-sm font-bold text-rk-on-surface-variant group-hover:text-rk-primary transition-colors">
@@ -299,7 +231,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="w-full bg-rk-surface-container rounded-full h-2 overflow-hidden">
                     <div
-                      className={`${stage.color} h-2 rounded-full`}
+                      className={`${stage.color} h-2 rounded-full transition-all duration-500`}
                       style={{ width: stage.width }}
                     />
                   </div>
@@ -314,12 +246,9 @@ export default function DashboardPage() {
               <h3 className="font-serif text-xl text-rk-primary font-semibold m-0">
                 Top Performing Products
               </h3>
-              <button className="px-3 py-1.5 border border-rk-border-subtle rounded-lg text-sm text-rk-on-surface-variant hover:bg-rk-surface-container transition-colors flex items-center gap-1">
-                This Month
-                <span className="material-symbols-outlined text-[18px]">
-                  expand_more
-                </span>
-              </button>
+              <span className="px-3 py-1.5 border border-rk-border-subtle rounded-lg text-sm text-rk-on-surface-variant">
+                {timeRangeLabel[range]}
+              </span>
             </div>
             <div className="overflow-x-auto rk-scroll">
               <table className="w-full text-left">
@@ -331,7 +260,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {data.products.map((p) => (
                     <tr
                       key={p.name}
                       className="border-b border-rk-border-subtle/60 last:border-0"
